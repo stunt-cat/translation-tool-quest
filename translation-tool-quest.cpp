@@ -37,6 +37,13 @@ int main(int argc, char** argv)
     }
 
 
+    // Fool
+    if (string(argv[1]).compare("apply") != 0 && string(argv[1]).compare("generate") != 0){
+        cout << "You must apply or generate!" << endl;
+        argsSummary(argc, argv);
+    }
+
+
     // End Quest
     cout << "Proceed to section 14" << endl;
 
