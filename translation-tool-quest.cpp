@@ -20,7 +20,7 @@ int main(int argc, char** argv)
     // generate
     if (string(argv[1]).compare("generate") == 0)
     {
-        cout << "Let's generate some stuff" <<endl;
+        cout << "Let's generate some stuff!" <<endl;
 
         if (argc < 5)
         {
@@ -29,8 +29,17 @@ int main(int argc, char** argv)
         else
         {
             // MASSIVE TODO!!
-            
-            // for testing purposes, let's assume the user put 'filename.txt' as their 2nd argument..
+            /*  
+            *   Parse file from 'source' command line argument and use to generate a tree object e.g. sourceFile.
+            *   Parse all files from dst-core/ and create a tree object from each e.g. destFile1.
+            *   Create a core-map.json file (empty for now).
+            *   Iterate over sourceFile keys and in each iteration loop over destFile(s) keys
+            *       if there is a string match, output some JSON to the core-map.json specifying key and destination file
+            */
+
+
+            // Testing creating and writing to a file
+            // For testing purposes, let's assume the user put 'filename.txt' as their 2nd argument..
             ofstream outputFile;
             outputFile.open(string(argv[2]));
             for (int i=0; i<10; ++i)
@@ -55,13 +64,23 @@ int main(int argc, char** argv)
         else 
         {
             // MASSIVE TODO!!
-            
+            /*
+            *   Create tree object from command line argument specified core.json
+            *   Create tree object from core-map.json
+            *   Iterate over map tree to find unique destination file names
+            *       Create these .json files in last command line argument directory (i.e. dst-core/)
+            *   Iterate over core-map.json tree
+            *       for each entry, use key to lookup value in core.json and put it into key/value pair in correct destination file
+            * 
+            */
+
+
             cout << "Everything applied perfectly" << endl;
         }
     }
 
 
-    // Fool
+    // fool
     if (string(argv[1]).compare("apply") != 0 && string(argv[1]).compare("generate") != 0)
     {
         cout << "You must apply or generate!" << endl;
