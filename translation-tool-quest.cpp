@@ -45,57 +45,45 @@ int main(int argc, char** argv)
         }
         else
         {
-            // MASSIVE TODO!!
-            /*  
-            *   Parse file from 'source' command line argument and use to generate a tree object e.g. sourceFile.
-            *   Parse all files from dst-core/ and create a tree object from each e.g. destFile1.
-            *   Create a core-map.json file (empty for now).
-            *   Iterate over sourceFile keys and in each iteration loop over destFile(s) keys
-            *       if there is a string match, output some JSON to the core-map.json specifying key and destination file
-            */
-
             // Parse file from 'source' command line argument and use to generate a tree object.
             tree treeOfSource = TreeFromFile(argv[3]);
             
             // Parse all files from dst-core/ and create a tree object from each.
             string path = argv[4];
             string filename;
-            vector <tree> dest_files = {};
+            map <string, tree> dest_files = {};
             for (const auto & entry : filesystem::directory_iterator(path))
             {
                 filename = entry.path().filename();
-                tree filename = TreeFromFile(entry.path());
-                dest_files.push_back(filename);
+                tree t = TreeFromFile(entry.path());
+                dest_files.insert_or_assign(filename, t);
             }
-            
-            // Create a core-map.json file (empty for now).
+
+            // Create a core-map.json file and fill it with matches.
             ofstream outputFile;
             outputFile.open(string(argv[2]));
-            outputFile.close();
-
-
-
-            /* for ( auto &i : dest_files)
+            
+            outputFile << "{" << endl;
+            // Iterate over treeOfSource keys and in each iteration loop over dest_files(s) keys
+            //      if there is a string match, output some JSON to the core-map.json specifying key and destination file
+            for (auto &i : treeOfSource.children)
             {
-                for (auto &i : treeOfSource.children)
+                map<string, tree>::iterator iter;
+                for (iter = dest_files.begin(); iter != dest_files.end(); ++iter)
                 {
-                    cout << i.first << ": " << i.second.as_string() << endl;
+                    for (auto k : iter->second.children)
+                    {
+                        if (i.first == k.first)
+                        {
+                            outputFile << "\"" << i.first << "\": \"" << iter->first << "\","<< endl;
+                        }  
+                    }
                 }
-            } */
-
-            
-            
-            //cout << t["array"]["cancel"].as_string() << endl;
-
-            // Testing creating and writing to a file
-            // For testing purposes, let's assume the user put 'filename.txt' as their 2nd argument..
-            /* ofstream outputFile;
-            outputFile.open(string(argv[2]));
-            for (int i=0; i<10; ++i)
-            {
-                outputFile << "Line number " << i << " that will be json one day." << endl;
             }
-            outputFile.close(); */
+
+            outputFile << "}" << endl;
+
+            outputFile.close();
             
             cout << "Everything generated perfectly" << endl;
         }
