@@ -20,6 +20,18 @@ void ArgsSummary(int argc, char** argv)
     }
 }
 
+tree TreeFromFile(string fileName)
+{
+    ifstream ifile(fileName);
+    ostringstream tmp;
+    tmp << ifile.rdbuf();
+    string stringOfSource = tmp.str();
+
+    auto t = decode<json>(stringOfSource);
+
+    return t;
+}
+
 int main(int argc, char** argv)
 {
     // generate
@@ -42,35 +54,36 @@ int main(int argc, char** argv)
             *       if there is a string match, output some JSON to the core-map.json specifying key and destination file
             */
 
-            // Parse file from 'source' command line argument and use to generate a tree object e.g. sourceFile.
-            ifstream ifile(argv[3]);
-            ostringstream tmp;
-            tmp << ifile.rdbuf();
-            string stringOfSource = tmp.str();
+            // Parse file from 'source' command line argument and use to generate a tree object.
+            tree treeOfSource = TreeFromFile(argv[3]);
+            
+            // Parse all files from dst-core/ and create a tree object from each.
+            string path = argv[4];
+            string filename;
+            vector <tree> dest_files = {};
+            for (const auto & entry : filesystem::directory_iterator(path))
+            {
+                filename = entry.path().filename();
+                tree filename = TreeFromFile(entry.path());
+                dest_files.push_back(filename);
+            }
+            
+            // Create a core-map.json file (empty for now).
+            ofstream outputFile;
+            outputFile.open(string(argv[2]));
+            outputFile.close();
 
-            auto treeOfSource = decode<json>(stringOfSource);
-            /* 
-            if (treeOfSource.get_type() == tree::Type::Object)
+
+
+            /* for ( auto &i : dest_files)
             {
                 for (auto &i : treeOfSource.children)
                 {
-                    cout << i.second.as_string() << endl;
-                    //cout << i.first << ": " << i.second.as_string() << endl;
+                    cout << i.first << ": " << i.second.as_string() << endl;
                 }
             } */
 
-            //Parse all files from dst-core/ and create a tree object from each e.g. destFile1.
-            string path = argv[4];
-            vector<string> dest_files = {};
-            for (const auto & entry : filesystem::directory_iterator(path))
-            {
-                dest_files.push_back(entry.path().filename());
-            }
             
-            for ( auto &i : dest_files)
-            {
-                cout << i << endl;
-            }
             
             //cout << t["array"]["cancel"].as_string() << endl;
 
