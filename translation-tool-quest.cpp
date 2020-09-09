@@ -76,47 +76,43 @@ int main(int argc, char** argv)
                 // Parse file from 'source' command line argument and use to generate a tree object.
                 tree treeOfSource = TreeFromFile(source);
                 
-                // Parse all files from dst-core/ and create a tree object from each.
-                string path = destination;
+                // Parse all files from dst-core/ and create a tree from each.
                 string filename;
                 map <string, tree> dest_files = {};
-                for (const auto & entry : filesystem::directory_iterator(path))
+                for (const auto & file : filesystem::directory_iterator(destination))
                 {
-                    filename = entry.path().filename();
-                    tree t = TreeFromFile(entry.path());
+                    filename = file.path().filename();
+                    tree t = TreeFromFile(file.path());
                     dest_files.insert_or_assign(filename, t);
                 }
 
                 // Create a core-map.json file and fill it with matches.
                 ofstream outputFile;
-                outputFile.open(string(mapName));
-                
-                outputFile << "{" << endl;
-                // Iterate over treeOfSource keys and in each iteration loop over dest_files(s) keys
-                //      if there is a string match, output some JSON to the core-map.json specifying key and destination file
-                for (auto &child : treeOfSource.children)
+                outputFile.open(mapName);
+
+                tree matches;
+
+                // Iterate over treeOfSource values and in each iteration loop over dest_files(s) values
+                //      if there is a string match, output some JSON to the core-map.json
+                //      specifying key of treeOfSource and destination file
+                for (auto &sourceChild : treeOfSource.children)
                 {
-                    map<string, tree>::iterator iter;
-                    for (iter = dest_files.begin(); iter != dest_files.end(); ++iter)
+                    for (auto &file : dest_files)
                     {
-                        for (auto k : iter->second.children)
+                        for (auto &fileChild : file.second.children)
                         {
-                            if (child.first == k.first)
+                            if (sourceChild.second.as_string() == fileChild.second.as_string())
                             {
-                                outputFile << "\"" << child.first << "\": \"" << iter->first << "\","<< endl;
+                                matches.set(sourceChild.first, file.first);
                             }  
                         }
                     }
                 }
-
-                outputFile << "}" << endl;
-
+                outputFile << encode<prettyjson>(matches);
                 outputFile.close();
                 
                 cout << "Everything generated perfectly" << endl;
             }
-            // if (method.compare("generate") == 0)
-
 
             // apply
             if (method == "apply")
