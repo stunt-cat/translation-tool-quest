@@ -34,99 +34,114 @@ tree TreeFromFile(string fileName)
 
 int main(int argc, char** argv)
 {
-    // generate
-    if (string(argv[1]).compare("generate") == 0)
+    string method = "";
+    string mapName = "";
+    string source = "";
+    string destination = "";
+    
+    if (argc == 0)
     {
-        cout << "Let's generate some stuff!" <<endl;
-
+        // no supplied arguments
+        cout << "You really should proceed to section 14." << endl;
+        ArgsSummary(argc, argv);
+    }
+    else
+    {
         if (argc < 5)
         {
+            // not enough supplied arguments
             ArgsSummary(argc, argv);
+            cout << "You're close to section 14, you know." << endl;
         }
         else
         {
-            // Parse file from 'source' command line argument and use to generate a tree object.
-            tree treeOfSource = TreeFromFile(argv[3]);
-            
-            // Parse all files from dst-core/ and create a tree object from each.
-            string path = argv[4];
-            string filename;
-            map <string, tree> dest_files = {};
-            for (const auto & entry : filesystem::directory_iterator(path))
+            // we have all information - proceed!
+            method = argv[1];
+            mapName = argv[2];
+            source = argv[3];
+            destination = argv[4]; // TODO - manipulate this to only take the final part after '-'
+        
+            // Bad method supplied! No biscuit!
+            if (method != "apply" && method != "generate")
             {
-                filename = entry.path().filename();
-                tree t = TreeFromFile(entry.path());
-                dest_files.insert_or_assign(filename, t);
+                cout << "You must apply or generate!" << endl;
+                ArgsSummary(argc, argv);
             }
 
-            // Create a core-map.json file and fill it with matches.
-            ofstream outputFile;
-            outputFile.open(string(argv[2]));
-            
-            outputFile << "{" << endl;
-            // Iterate over treeOfSource keys and in each iteration loop over dest_files(s) keys
-            //      if there is a string match, output some JSON to the core-map.json specifying key and destination file
-            for (auto &i : treeOfSource.children)
+            // generate
+            if (method == "generate")
             {
-                map<string, tree>::iterator iter;
-                for (iter = dest_files.begin(); iter != dest_files.end(); ++iter)
+                cout << "Let's generate some stuff!" <<endl;
+
+                // Parse file from 'source' command line argument and use to generate a tree object.
+                tree treeOfSource = TreeFromFile(source);
+                
+                // Parse all files from dst-core/ and create a tree object from each.
+                string path = destination;
+                string filename;
+                map <string, tree> dest_files = {};
+                for (const auto & entry : filesystem::directory_iterator(path))
                 {
-                    for (auto k : iter->second.children)
+                    filename = entry.path().filename();
+                    tree t = TreeFromFile(entry.path());
+                    dest_files.insert_or_assign(filename, t);
+                }
+
+                // Create a core-map.json file and fill it with matches.
+                ofstream outputFile;
+                outputFile.open(string(mapName));
+                
+                outputFile << "{" << endl;
+                // Iterate over treeOfSource keys and in each iteration loop over dest_files(s) keys
+                //      if there is a string match, output some JSON to the core-map.json specifying key and destination file
+                for (auto &child : treeOfSource.children)
+                {
+                    map<string, tree>::iterator iter;
+                    for (iter = dest_files.begin(); iter != dest_files.end(); ++iter)
                     {
-                        if (i.first == k.first)
+                        for (auto k : iter->second.children)
                         {
-                            outputFile << "\"" << i.first << "\": \"" << iter->first << "\","<< endl;
-                        }  
+                            if (child.first == k.first)
+                            {
+                                outputFile << "\"" << child.first << "\": \"" << iter->first << "\","<< endl;
+                            }  
+                        }
                     }
                 }
+
+                outputFile << "}" << endl;
+
+                outputFile.close();
+                
+                cout << "Everything generated perfectly" << endl;
             }
+            // if (method.compare("generate") == 0)
 
-            outputFile << "}" << endl;
 
-            outputFile.close();
+            // apply
+            if (method == "apply")
+            {
+                cout << "Let's apply some stuff to some other stuff!" <<endl;
             
-            cout << "Everything generated perfectly" << endl;
+                // MASSIVE TODO!!
+                /*
+                *   Create tree object from command line argument specified core.json
+                *   Create tree object from core-map.json
+                *   Iterate over map tree to find unique destination file names
+                *       Create these .json files in last command line argument directory (i.e. dst-core/)
+                *   Iterate over core-map.json tree
+                *       for each entry, use key to lookup value in core.json and put it into key/value pair in correct destination file
+                * 
+                */
+
+                cout << "Everything applied perfectly" << endl;
+            }
         }
     }
-
-
-    // apply
-    if (string(argv[1]).compare("apply") == 0)
-    {
-        cout << "Let's apply some stuff to some other stuff!" <<endl;
-        if (argc < 5)
-        {
-            ArgsSummary(argc, argv);
-        }
-        else 
-        {
-            // MASSIVE TODO!!
-            /*
-            *   Create tree object from command line argument specified core.json
-            *   Create tree object from core-map.json
-            *   Iterate over map tree to find unique destination file names
-            *       Create these .json files in last command line argument directory (i.e. dst-core/)
-            *   Iterate over core-map.json tree
-            *       for each entry, use key to lookup value in core.json and put it into key/value pair in correct destination file
-            * 
-            */
-
-
-            cout << "Everything applied perfectly" << endl;
-        }
-    }
-
-
-    // fool
-    if (string(argv[1]).compare("apply") != 0 && string(argv[1]).compare("generate") != 0)
-    {
-        cout << "You must apply or generate!" << endl;
-        ArgsSummary(argc, argv);
-    }
-
 
     // End Quest
-    cout << "Proceed to section 14" << endl;
+    cout << "Your quest is over for now." << endl;
+    cout << "But remember, this was not a test." << endl;
 
     return 0;
 }
