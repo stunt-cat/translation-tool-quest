@@ -1,8 +1,13 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <filesystem>
+#include <entity/entity.hpp>
+#include <entity/json.hpp>
+#include <entity/tree.hpp>
 
 using namespace std;
+using namespace ent;
 
 void ArgsSummary(int argc, char** argv)
 {
@@ -37,16 +42,47 @@ int main(int argc, char** argv)
             *       if there is a string match, output some JSON to the core-map.json specifying key and destination file
             */
 
+            // Parse file from 'source' command line argument and use to generate a tree object e.g. sourceFile.
+            ifstream ifile(argv[3]);
+            ostringstream tmp;
+            tmp << ifile.rdbuf();
+            string stringOfSource = tmp.str();
+
+            auto treeOfSource = decode<json>(stringOfSource);
+            /* 
+            if (treeOfSource.get_type() == tree::Type::Object)
+            {
+                for (auto &i : treeOfSource.children)
+                {
+                    cout << i.second.as_string() << endl;
+                    //cout << i.first << ": " << i.second.as_string() << endl;
+                }
+            } */
+
+            //Parse all files from dst-core/ and create a tree object from each e.g. destFile1.
+            string path = argv[4];
+            vector<string> dest_files = {};
+            for (const auto & entry : filesystem::directory_iterator(path))
+            {
+                dest_files.push_back(entry.path().filename());
+            }
+            
+            for ( auto &i : dest_files)
+            {
+                cout << i << endl;
+            }
+            
+            //cout << t["array"]["cancel"].as_string() << endl;
 
             // Testing creating and writing to a file
             // For testing purposes, let's assume the user put 'filename.txt' as their 2nd argument..
-            ofstream outputFile;
+            /* ofstream outputFile;
             outputFile.open(string(argv[2]));
             for (int i=0; i<10; ++i)
             {
                 outputFile << "Line number " << i << " that will be json one day." << endl;
             }
-            outputFile.close();
+            outputFile.close(); */
             
             cout << "Everything generated perfectly" << endl;
         }
