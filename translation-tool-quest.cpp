@@ -7,7 +7,6 @@
 #include <entity/tree.hpp>
 
 using namespace std;
-using namespace ent;
 
 void ArgsSummary(int argc, char** argv)
 {
@@ -20,14 +19,14 @@ void ArgsSummary(int argc, char** argv)
     }
 }
 
-tree TreeFromFile(string fileName)
+ent::tree TreeFromFile(string fileName)
 {
     ifstream ifile(fileName);
     ostringstream tmp;
     tmp << ifile.rdbuf();
     string stringOfSource = tmp.str();
 
-    auto t = decode<json>(stringOfSource);
+    auto t = ent::decode<ent::json>(stringOfSource);
 
     return t;
 }
@@ -59,7 +58,9 @@ int main(int argc, char** argv)
             method = argv[1];
             mapName = argv[2];
             source = argv[3];
-            destination = argv[4]; // TODO - manipulate this to only take the final part after '-'
+            string source_short = source.substr(16);
+            destination = argv[4];
+            
         
             // Bad method supplied! No biscuit!
             if (method != "apply" && method != "generate")
@@ -74,15 +75,15 @@ int main(int argc, char** argv)
                 cout << "Let's generate some stuff!" <<endl;
 
                 // Parse file from 'source' command line argument and use to generate a tree object.
-                tree treeOfSource = TreeFromFile(source);
+                ent::tree treeOfSource = TreeFromFile(source);
                 
                 // Parse all files from dst-core/ and create a tree from each.
                 string filename;
-                map <string, tree> dest_files = {};
+                map <string, ent::tree> dest_files = {};
                 for (const auto & file : filesystem::directory_iterator(destination))
                 {
                     filename = file.path().filename();
-                    tree t = TreeFromFile(file.path());
+                    ent::tree t = TreeFromFile(file.path());
                     dest_files.insert_or_assign(filename, t);
                 }
 
@@ -90,25 +91,34 @@ int main(int argc, char** argv)
                 ofstream outputFile;
                 outputFile.open(mapName);
 
-                tree matches;
-
                 // Iterate over treeOfSource values and in each iteration loop over dest_files(s) values
                 //      if there is a string match, output some JSON to the core-map.json
                 //      specifying key of treeOfSource and destination file
+                
+                ent::tree tAllMatches;
+                ent::tree tCurrentFileMatches;
+                string fileMatches = "";
+
                 for (auto &sourceChild : treeOfSource.children)
                 {
                     for (auto &file : dest_files)
                     {
+                        fileMatches = file.first;
+
                         for (auto &fileChild : file.second.children)
                         {
-                            if (sourceChild.second.as_string() == fileChild.second.as_string())
+                            if (sourceChild.second == fileChild.second)
                             {
-                                matches.set(sourceChild.first, file.first);
+                                // string = file
+                                // tree = (sourceChild.first, fileChild.first)
+                                tCurrentFileMatches.set(sourceChild.first, fileChild.first);
                             }  
                         }
+
+                        tAllMatches.set(fileMatches, tCurrentFileMatches);
                     }
                 }
-                outputFile << encode<prettyjson>(matches);
+                outputFile << ent::encode<ent::prettyjson>(tAllMatches);
                 outputFile.close();
                 
                 cout << "Everything generated perfectly" << endl;
