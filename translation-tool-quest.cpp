@@ -58,9 +58,8 @@ int main(int argc, char** argv)
             method = argv[1];
             mapName = argv[2];
             source = argv[3];
-            string source_short = source.substr(16);
             destination = argv[4];
-            
+
         
             // Bad method supplied! No biscuit!
             if (method != "apply" && method != "generate")
@@ -79,21 +78,19 @@ int main(int argc, char** argv)
                 
                 // Parse all files from dst-core/ and create a tree from each.
                 string filename;
-                //map <string, ent::tree> dest_files = {};
+                string shortFilename;
                 ent::tree destFiles;
                 for (const auto & file : filesystem::directory_iterator(destination))
                 {
                     filename = file.path().filename();
+                    shortFilename = filename.substr(12);
                     ent::tree t = TreeFromFile(file.path());
-                    //dest_files.insert_or_assign(filename, t);
-                    destFiles.set(filename, t);
+                    destFiles.set(shortFilename, t);
                 }
                 
-                //cout << ent::encode<ent::prettyjson>(destFiles) << endl;
                 // Create a core-map.json file and fill it with matches.
                 ofstream outputFile;
                 outputFile.open(mapName);
-
 
                 // Iterate over treeOfSource values and in each iteration loop over dest_files(s) values
                 //      if there is a string match, output some JSON to the core-map.json
@@ -109,8 +106,6 @@ int main(int argc, char** argv)
                         {
                             if (sourceChild.second == fileChild.second)
                             {
-                                // string = file
-                                // tree = (sourceChild.first, fileChild.first)
                                 tAllMatches[file.first].set(sourceChild.first, fileChild.first);
                             }  
                         }
