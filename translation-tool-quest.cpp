@@ -79,43 +79,41 @@ int main(int argc, char** argv)
                 
                 // Parse all files from dst-core/ and create a tree from each.
                 string filename;
-                map <string, ent::tree> dest_files = {};
+                //map <string, ent::tree> dest_files = {};
+                ent::tree destFiles;
                 for (const auto & file : filesystem::directory_iterator(destination))
                 {
                     filename = file.path().filename();
                     ent::tree t = TreeFromFile(file.path());
-                    dest_files.insert_or_assign(filename, t);
+                    //dest_files.insert_or_assign(filename, t);
+                    destFiles.set(filename, t);
                 }
-
+                
+                //cout << ent::encode<ent::prettyjson>(destFiles) << endl;
                 // Create a core-map.json file and fill it with matches.
                 ofstream outputFile;
                 outputFile.open(mapName);
+
 
                 // Iterate over treeOfSource values and in each iteration loop over dest_files(s) values
                 //      if there is a string match, output some JSON to the core-map.json
                 //      specifying key of treeOfSource and destination file
                 
                 ent::tree tAllMatches;
-                ent::tree tCurrentFileMatches;
-                string fileMatches = "";
 
                 for (auto &sourceChild : treeOfSource.children)
                 {
-                    for (auto &file : dest_files)
+                    for (auto &file : destFiles.children)
                     {
-                        fileMatches = file.first;
-
                         for (auto &fileChild : file.second.children)
                         {
                             if (sourceChild.second == fileChild.second)
                             {
                                 // string = file
                                 // tree = (sourceChild.first, fileChild.first)
-                                tCurrentFileMatches.set(sourceChild.first, fileChild.first);
+                                tAllMatches[file.first].set(sourceChild.first, fileChild.first);
                             }  
                         }
-
-                        tAllMatches.set(fileMatches, tCurrentFileMatches);
                     }
                 }
                 outputFile << ent::encode<ent::prettyjson>(tAllMatches);
