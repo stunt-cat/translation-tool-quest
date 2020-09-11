@@ -128,27 +128,20 @@ int main(int argc, char** argv)
                 // Parse file from 'core-map.json' command line argument and use to generate a tree.
                 ent::tree tJSONMap = TreeFromFile(mapName);
 
-                // iterate over tJSONMap to get file names
-                vector <string> destFileNames = {};
-                for (auto &file : tJSONMap.children)
-                {
-                    destFileNames.push_back(file.first);
-                }
-
                 // make a tree and directory for output file contents
                 ent::tree outputFiles;
                 filesystem::create_directory ("output");
 
-                for (auto translateKey : tSource.children)
+                for (auto &translateKey : tSource.children)
                 {
-                    for (auto fileName : destFileNames)
+                    for (auto &file : tJSONMap.children)
                     {
-                        for (auto mapKey : tJSONMap[fileName].children)
+                        for (auto &mapKey : file.second.children)
                         {
                             if (translateKey.first == mapKey.first)
                             {
                                 // write correct translation to correct tree
-                                outputFiles[fileName].set(mapKey.second, translateKey.second);
+                                outputFiles[file.first].set(mapKey.second, translateKey.second);
                             }
                         }
                     }
