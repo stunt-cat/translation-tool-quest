@@ -122,16 +122,46 @@ int main(int argc, char** argv)
             {
                 cout << "Let's apply some stuff to some other stuff!" <<endl;
             
-                // MASSIVE TODO!!
-                /*
-                *   Create tree object from command line argument specified core.json
-                *   Create tree object from core-map.json
-                *   Iterate over map tree to find unique destination file names
-                *       Create these .json files in last command line argument directory (i.e. dst-core/)
-                *   Iterate over core-map.json tree
-                *       for each entry, use key to lookup value in core.json and put it into key/value pair in correct destination file
-                * 
-                */
+               // Parse file from 'source' command line argument and use to generate a tree.
+                ent::tree tSource = TreeFromFile(source);
+
+                // Parse file from 'core-map.json' command line argument and use to generate a tree.
+                ent::tree tJSONMap = TreeFromFile(mapName);
+
+                // iterate over tJSONMap to get file names
+                vector <string> destFileNames = {};
+                for (auto &file : tJSONMap.children)
+                {
+                    destFileNames.push_back(file.first);
+                }
+
+                // make a tree and directory for output file contents
+                ent::tree outputFiles;
+                filesystem::create_directory ("output");
+
+                for (auto translateKey : tSource.children)
+                {
+                    for (auto fileName : destFileNames)
+                    {
+                        for (auto mapKey : tJSONMap[fileName].children)
+                        {
+                            if (translateKey.first == mapKey.first)
+                            {
+                                // write correct translation to correct tree
+                                outputFiles[fileName].set(mapKey.second, translateKey.second);
+                            }
+                        }
+                    }
+                }
+
+                // write to files
+                for (auto &moduleFile : outputFiles.children)
+                {
+                    ofstream fileOutput;
+                    fileOutput.open(destination+moduleFile.first);
+                    fileOutput << ent::encode<ent::prettyjson>(moduleFile.second);
+                    fileOutput.close();
+                }
 
                 cout << "Everything applied perfectly" << endl;
             }
